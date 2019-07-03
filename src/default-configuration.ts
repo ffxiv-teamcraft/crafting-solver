@@ -1,4 +1,4 @@
-import { SolverConfiguration } from './solver-configuration'
+import { SolverConfiguration } from './solver-configuration';
 
 export const defaultConfiguration: SolverConfiguration = {
   populationSize: 200,
@@ -10,4 +10,4 @@ export const defaultConfiguration: SolverConfiguration = {
     hq: 15,
     length: 10
   }
-}
+};
