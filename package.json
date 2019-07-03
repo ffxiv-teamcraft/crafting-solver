@@ -1,6 +1,6 @@
 {
   "name": "@ffxiv-teamcraft/crafting-solver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A crafting solver for FINAL FANTASY XIV",
   "keywords": [],
   "main": "dist/crafting-solver.umd.js",
