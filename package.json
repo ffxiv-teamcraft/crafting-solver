@@ -3,9 +3,9 @@
   "version": "1.0.1",
   "description": "A crafting solver for FINAL FANTASY XIV",
   "keywords": [],
-  "main": "dist/crafting-solver.umd.js",
-  "module": "dist/crafting-solver.es5.js",
-  "typings": "dist/types/crafting-solver.d.ts",
+  "main": "crafting-solver.umd.js",
+  "module": "crafting-solver.es5.js",
+  "typings": "types/crafting-solver.d.ts",
   "author": "Supamiu <contact@flavien-normand.fr>",
   "repository": {
     "type": "git",
@@ -62,14 +62,6 @@
       "/node_modules/",
       "/test/"
     ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 90,
-        "functions": 95,
-        "lines": 95,
-        "statements": 95
-      }
-    },
     "collectCoverageFrom": [
       "src/*.{js,ts}"
     ]
