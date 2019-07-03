@@ -6,9 +6,6 @@
   "main": "dist/crafting-solver.umd.js",
   "module": "dist/crafting-solver.es5.js",
   "typings": "dist/types/crafting-solver.d.ts",
-  "files": [
-    "dist"
-  ],
   "author": "Supamiu <contact@flavien-normand.fr>",
   "repository": {
     "type": "git",
@@ -29,7 +26,7 @@
     "test:watch": "jest --coverage --watch",
     "release:git": "npm run build && standard-version && git push --follow-tags origin master",
     "release:git:beta": "npm run build && standard-version --prerelease beta && git push --follow-tags origin master",
-    "release:npm": "npm run copyfiles && npm publish dist",
+    "release:npm": "npm run copyfiles && npm publish dist --access public",
     "release": "npm run release:git && npm run release:npm",
     "test:prod": "npm run lint && npm run test -- --no-cache",
     "deploy-docs": "ts-node tools/gh-pages-publish",
