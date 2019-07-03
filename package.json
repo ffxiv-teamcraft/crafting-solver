@@ -12,27 +12,32 @@
   "author": "Supamiu <contact@flavien-normand.fr>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/ffxiv-teamcraft/crafting-solver"
   },
   "license": "MIT",
   "engines": {
     "node": ">=8.0.0"
   },
   "scripts": {
-    "lint": "tslint  --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "tslint -c tsconfig.json --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "lint:fix": "tslint -c tsconfig.json --fix --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "copyfiles": "copyfiles package.json LICENSE README.md CHANGELOG.md dist",
+    "build": "tsc --module commonjs --declaration && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "rollup -c rollup.config.ts -w",
-    "test": "jest --coverage",
+    "test": "jest --coverage --maxWorkers=2",
     "test:watch": "jest --coverage --watch",
+    "release:git": "npm run build && standard-version && git push --follow-tags origin master",
+    "release:git:beta": "npm run build && standard-version --prerelease beta && git push --follow-tags origin master",
+    "release:npm": "npm run copyfiles && npm publish dist",
+    "release": "npm run release:git && npm run release:npm",
     "test:prod": "npm run lint && npm run test -- --no-cache",
     "deploy-docs": "ts-node tools/gh-pages-publish",
-    "report-coverage": "cat ./coverage/lcov.info | coveralls",
+    "report-coverage": "codecov",
     "commit": "git-cz",
-    "semantic-release": "semantic-release",
-    "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
+    "standard-version": "standard-version",
     "precommit": "lint-staged",
-    "generate-barrels": "barrelsby --delete -e /node_modules/.* -e rollup\\.config -e /tools/ -e /test/ -q"
+    "generate-barrels": "barrelsby --delete -e /node_modules/.* -e rollup\\.config -e /tools/ -e /test/ -q -n crafting-solver.ts -d src"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
