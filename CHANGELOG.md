@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.4](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.3...v1.0.4) (2019-07-03)
+
+
+### Bug Fixes
+
+* fixed default configuration for more HQ priority ([412adb4](https://github.com/ffxiv-teamcraft/crafting-solver/commit/412adb4))
+
+
+
 ### [1.0.3](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.2...v1.0.3) (2019-07-03)
 
 
