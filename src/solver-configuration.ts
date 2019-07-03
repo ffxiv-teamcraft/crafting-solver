@@ -9,6 +9,8 @@ export interface SolverConfiguration {
    */
   iterations: number;
 
+  safe: boolean;
+
   /**
    * Weights for each metric to affect how it's applied to the rotation's score.
    */

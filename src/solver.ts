@@ -171,8 +171,8 @@ export class Solver {
     // While the craft isn't finished, add a random action
     do {
       rotation.push(this.randomAction());
-      simulation.run();
-    } while (simulation.run() === undefined);
+      simulation.run(false, Infinity, this.config.safe);
+    } while (simulation.run(false, Infinity, this.config.safe) === undefined);
     return rotation;
   }
 }
