@@ -79,7 +79,7 @@ export class Solver {
 
   public evaluate(rotation: CraftingAction[], withReliability = false): number {
     const simulation = new Simulation(this.recipe, rotation, this.stats);
-    const simulationResult = simulation.run();
+    const simulationResult = simulation.run(false, Infinity, this.config.safe);
     let score = 0;
     // Add points if simulation ended properly.
     if (
