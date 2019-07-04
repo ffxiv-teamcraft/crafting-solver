@@ -4,6 +4,9 @@ import {
   CraftingAction,
   CraftingActionsRegistry,
   CraftingJob,
+  InitialPreparations,
+  MakersMark,
+  MuscleMemory,
   Simulation
 } from '@ffxiv-teamcraft/simulator';
 import { SolverConfiguration } from './solver-configuration';
@@ -143,26 +146,35 @@ export class Solver {
   private getMutation(rotation: CraftingAction[]): CraftingAction[] {
     const roll = Math.floor(Math.random() * 3);
     const clone = [...rotation];
+    const affectedIndex = Math.floor(Math.random() * clone.length);
     switch (roll) {
       case 0: // Add an action
-        clone.splice(Math.floor(Math.random() * clone.length), 0, this.randomAction());
+        clone.splice(affectedIndex, 0, this.randomAction(rotation, affectedIndex));
         break;
       case 1: // Change an action for another one
-        clone.splice(Math.floor(Math.random() * clone.length), 1, this.randomAction());
+        clone.splice(affectedIndex, 1, this.randomAction(rotation, affectedIndex));
         break;
       case 2: // Remove an action
-        clone.splice(Math.floor(Math.random() * clone.length), 1);
+        clone.splice(affectedIndex, 1);
         break;
       case 3: // Move an action from an index to another
-        const action = clone.splice(Math.floor(Math.random() * clone.length), 1)[0];
+        const action = clone.splice(affectedIndex, 1)[0];
         clone.splice(Math.floor(Math.random() * clone.length), 0, action);
         break;
     }
     return clone;
   }
 
-  private randomAction(): CraftingAction {
-    return this.availableActions[Math.floor(Math.random() * this.availableActions.length)];
+  private randomAction(currentRotation: CraftingAction[], index = -1): CraftingAction {
+    let availableActions = this.availableActions;
+    if (index > 0 || currentRotation.length > 0) {
+      availableActions = availableActions.filter(a => {
+        return ![MuscleMemory, InitialPreparations, MakersMark].some(skippedAction =>
+          a.is(skippedAction)
+        );
+      });
+    }
+    return availableActions[Math.floor(Math.random() * availableActions.length)];
   }
 
   private generateRotation(): CraftingAction[] {
@@ -170,7 +182,7 @@ export class Solver {
     let simulation = new Simulation(this.recipe, rotation, this.stats);
     // While the craft isn't finished, add a random action
     do {
-      rotation.push(this.randomAction());
+      rotation.push(this.randomAction(rotation));
       simulation.run(false, Infinity, this.config.safe);
     } while (simulation.run(false, Infinity, this.config.safe) === undefined);
     return rotation;
