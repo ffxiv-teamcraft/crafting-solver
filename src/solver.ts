@@ -93,6 +93,9 @@ export class Solver {
       if (iteration % 300 === 0) {
         this.reset();
       }
+      if (iteration > 1000) {
+        break;
+      }
     }
 
     console.log(
