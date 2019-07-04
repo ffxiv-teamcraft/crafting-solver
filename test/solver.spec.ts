@@ -7,27 +7,15 @@ describe('Solver tests', () => {
     const solver = new Solver(infusionOfMindRecipe, alc70i350Stats);
     const rotation = solver.run();
     const run = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats).run(true);
-    expect(run.success).toBeTruthy();
+    expect(run.hqPercent).toBeGreaterThanOrEqual(80);
   });
 
   it('Should be able to solve lvl 75 rotation with lvl 70 stats', () => {
-    const solver = new Solver(enchantedTruegoldInkRecipe, alc70i350Stats);
-    const rotation = solver.run();
-    const run = new Simulation(enchantedTruegoldInkRecipe, rotation, alc70i350Stats).run(true);
-    expect(run.success).toBeTruthy();
-  });
-
-  it('Should be able to solve lvl 75 rotation with lvl 70 stats and different weights', () => {
     const solver = new Solver(enchantedTruegoldInkRecipe, alc70i350Stats, {
-      weights: {
-        finished: 10,
-        length: 5,
-        progress: 8,
-        hq: 100
-      }
+      hqTarget: 50
     });
     const rotation = solver.run();
     const run = new Simulation(enchantedTruegoldInkRecipe, rotation, alc70i350Stats).run(true);
-    expect(run.success).toBeTruthy();
+    expect(run.hqPercent).toBeGreaterThanOrEqual(40);
   });
 });

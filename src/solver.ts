@@ -1,10 +1,12 @@
 import {
+  ByregotsBlessing,
   Craft,
   CrafterStats,
   CraftingAction,
   CraftingActionsRegistry,
   CraftingJob,
   InitialPreparations,
+  InnerQuiet,
   MakersMark,
   MuscleMemory,
   Simulation
@@ -54,6 +56,11 @@ export class Solver {
       }
       return this.stats.level >= levelRequirement.level;
     });
+    this.reset();
+  }
+
+  private reset() {
+    this.population = [];
     for (let i = 0; i < this.config.populationSize; i++) {
       this.population.push(this.generateRotation());
     }
@@ -63,58 +70,71 @@ export class Solver {
    * Finds the best rotation based on recipe and stats given.
    */
   public run(): CraftingAction[] {
-    for (let i = 0; i < this.config.iterations; i++) {
-      this.newIteration();
-    }
-    // Remove all the non-roxxors for better perfs on reliability report
-    this.population.splice(
-      0,
-      Math.floor((this.config.populationSize * Solver.ROXXORS_PERCENTAGE) / 100)
+    let best = this.getSortedPopulation()[0];
+    let bestRun = new Simulation(this.recipe, best, this.stats).run(
+      false,
+      Infinity,
+      this.config.safe
     );
-    // Once all iterations are done, get the best one, based on reliability too.
-    const winner = this.getSortedPopulation(true)[0];
-    const winnerRun = new Simulation(this.recipe, winner, this.stats).run();
+    let hqTarget = this.config.hqTarget;
+    let iteration = 0;
+    while (bestRun.hqPercent < hqTarget || !bestRun.success) {
+      this.newIteration();
+      best = this.getSortedPopulation()[0];
+      bestRun = new Simulation(this.recipe, best, this.stats).run(
+        false,
+        Infinity,
+        this.config.safe
+      );
+      iteration++;
+      if (iteration % 100 === 0) {
+        hqTarget--;
+      }
+      if (iteration % 300 === 0) {
+        this.reset();
+      }
+    }
+
+    console.log(
+      `Found a solution ! Score: ${this.evaluate(best)}, HQ%: ${bestRun.hqPercent}, success: ${
+        bestRun.success
+      }, iterations: ${iteration}`
+    );
     // Remove skipped actions and return the rotation
-    return winner.filter((action, index) => {
-      return !winnerRun.steps[index].skipped;
+    return best.filter((action, index) => {
+      return !bestRun.steps[index].skipped;
     });
   }
 
-  public evaluate(rotation: CraftingAction[], withReliability = false): number {
+  public evaluate(rotation: CraftingAction[]): number {
     const simulation = new Simulation(this.recipe, rotation, this.stats);
-    const simulationResult = simulation.run(false, Infinity, this.config.safe);
-    let score = 0;
-    // Add points if simulation ended properly.
-    if (
-      simulationResult.success &&
-      simulationResult.simulation.progression - this.config.progressAccuracy >= this.recipe.progress
-    ) {
-      score += 100 * this.config.weights.finished;
-    } else {
-      score +=
-        (simulationResult.simulation.progression / this.recipe.progress) *
-        100 *
-        this.config.weights.progress;
+    const simulationResult = simulation.run(true, Infinity, this.config.safe);
+    // Compute base score
+    let score = Math.floor(
+      (simulationResult.simulation.progression / this.recipe.progress) * simulationResult.hqPercent
+    );
+    // Apply bonuses
+    if (rotation.some(a => a.is(ByregotsBlessing))) {
+      score *= 1.1;
     }
-    score += simulationResult.hqPercent * this.config.weights.hq;
-    score -= rotation.length * this.config.weights.length;
-    if (withReliability) {
-      const report = simulation.getReliabilityReport();
-      score *= report.successPercent / 100;
+    if (rotation.some(a => a.is(InnerQuiet))) {
+      score *= 1.1;
     }
-    return score;
+    // For each action used with success rate < 70%, reduce score
+    score -= 2 * rotation.filter(a => a.getSuccessRate(simulation) < 70).length;
+    return Math.floor(score);
   }
 
-  private getSortedPopulation(withReliability = false): CraftingAction[][] {
+  private getSortedPopulation(): CraftingAction[][] {
     return this.population
       .map(rotation => {
         return {
           rotation: rotation,
-          score: this.evaluate(rotation, withReliability)
+          score: this.evaluate(rotation)
         };
       })
       .sort((a, b) => b.score - a.score)
-      .map(row => row.rotation);
+      .map(s => s.rotation);
   }
 
   private newIteration(): void {
@@ -183,8 +203,9 @@ export class Solver {
     // While the craft isn't finished, add a random action
     do {
       rotation.push(this.randomAction(rotation));
+      simulation.reset();
       simulation.run(false, Infinity, this.config.safe);
-    } while (simulation.run(false, Infinity, this.config.safe) === undefined);
+    } while (simulation.success === undefined);
     return rotation;
   }
 }

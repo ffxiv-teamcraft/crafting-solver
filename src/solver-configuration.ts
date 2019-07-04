@@ -4,22 +4,9 @@ export interface SolverConfiguration {
    */
   populationSize: number;
 
-  /**
-   * Amount of times you run an iteration.
-   */
-  iterations: number;
-
   safe: boolean;
 
-  /**
-   * Weights for each metric to affect how it's applied to the rotation's score.
-   */
-  weights: {
-    finished: number;
-    progress: number;
-    hq: number;
-    length: number;
-  };
+  hqTarget: number;
 
   /**
    * What's the overshoot on accuracy we want.
