@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.5](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.4...v1.0.5) (2019-07-04)
+
+
+### Bug Fixes
+
+* don't use first turn actions when it's not first turn anymore ([b95b047](https://github.com/ffxiv-teamcraft/crafting-solver/commit/b95b047))
+* fixed an issue with safe mode not being used properly ([567619e](https://github.com/ffxiv-teamcraft/crafting-solver/commit/567619e))
+* fixed default weights for better results ([c6c8053](https://github.com/ffxiv-teamcraft/crafting-solver/commit/c6c8053))
+
+
+
 ### [1.0.4](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.3...v1.0.4) (2019-07-03)
 
 
