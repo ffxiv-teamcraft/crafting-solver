@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.8](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.7...v1.0.8) (2019-07-05)
+
+
+### Bug Fixes
+
+* avoid quality actions if there's no IQ running ([a115caa](https://github.com/ffxiv-teamcraft/crafting-solver/commit/a115caa))
+* fixed an issue with solver running forever ([4b2b56d](https://github.com/ffxiv-teamcraft/crafting-solver/commit/4b2b56d))
+
+
+
 ### [1.0.7](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.0.6...v1.0.7) (2019-07-05)
 
 
