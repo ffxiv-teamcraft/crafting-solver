@@ -1,4 +1,4 @@
-import { Craft, CrafterStats } from '@ffxiv-teamcraft/simulator'
+import { Craft, CrafterStats } from '@ffxiv-teamcraft/simulator';
 
 export const infusionOfMindRecipe: Craft = {
   id: '3595',
@@ -43,7 +43,7 @@ export const infusionOfMindRecipe: Craft = {
       amount: 1
     }
   ]
-}
+};
 
 export const enchantedTruegoldInkRecipe: Craft = {
   id: '3856',
@@ -78,7 +78,37 @@ export const enchantedTruegoldInkRecipe: Craft = {
       amount: 6
     }
   ]
-}
+};
+
+export const dwarvenMythrilNugget: Craft = {
+  id: '3831',
+  job: 11,
+  rlvl: 415,
+  durability: 40,
+  quality: 17956,
+  progress: 1822,
+  lvl: 78,
+  suggestedCraftsmanship: 1662,
+  suggestedControl: 1541,
+  hq: 1,
+  quickSynth: 1,
+  ingredients: [
+    {
+      id: 27702,
+      amount: 4,
+      quality: 3150.0874
+    },
+    {
+      id: 12531,
+      amount: 1,
+      quality: 866.6508
+    },
+    {
+      id: 10,
+      amount: 7
+    }
+  ]
+};
 
 export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474, true, 70, [
   70,
@@ -89,4 +119,15 @@ export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474
   70,
   70,
   70
-])
+]);
+
+export const lvl80Stats: CrafterStats = new CrafterStats(14, 2218, 2275, 541, true, 80, [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+]);

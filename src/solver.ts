@@ -1,18 +1,36 @@
 import {
+  Buff,
   ByregotsBlessing,
   Craft,
   CrafterStats,
   CraftingAction,
   CraftingActionsRegistry,
   CraftingJob,
+  FocusedSynthesis,
+  FocusedTouch,
+  GreatStrides,
+  HeartOfTheCrafter,
+  Ingenuity,
+  IngenuityII,
   InitialPreparations,
   InnerQuiet,
+  Innovation,
   MakersMark,
   MuscleMemory,
-  Simulation
+  NameOfTheElements,
+  Observe,
+  ProgressAction,
+  Reclaim,
+  Reuse,
+  Satisfaction,
+  Simulation,
+  TrainedHand,
+  TricksOfTheTrade,
+  WhistleWhileYouWork
 } from '@ffxiv-teamcraft/simulator';
 import { SolverConfiguration } from './solver-configuration';
 import { defaultConfiguration } from './default-configuration';
+import { Class } from '@kaiu/serializer';
 
 export class Solver {
   /**
@@ -88,12 +106,12 @@ export class Solver {
       );
       iteration++;
       if (iteration % 100 === 0) {
-        hqTarget--;
+        hqTarget -= 10;
       }
       if (iteration % 300 === 0) {
         this.reset();
       }
-      if (iteration > 1000) {
+      if (iteration > 900) {
         break;
       }
     }
@@ -188,15 +206,62 @@ export class Solver {
     return clone;
   }
 
-  private randomAction(currentRotation: CraftingAction[], index = -1): CraftingAction {
+  private randomAction(
+    currentRotation: CraftingAction[],
+    index = currentRotation.length - 1
+  ): CraftingAction {
+    const run = new Simulation(this.recipe, currentRotation, this.stats).run();
     let availableActions = this.availableActions;
+    const excludedActions: Class<CraftingAction>[] = [
+      Reclaim,
+      Reuse,
+      TrainedHand,
+      Satisfaction,
+      TricksOfTheTrade,
+      WhistleWhileYouWork,
+      HeartOfTheCrafter
+    ];
+    // If it's not first step, remove first step actions
     if (index > 0 || currentRotation.length > 0) {
-      availableActions = availableActions.filter(a => {
-        return ![MuscleMemory, InitialPreparations, MakersMark].some(skippedAction =>
-          a.is(skippedAction)
-        );
-      });
+      excludedActions.push(MuscleMemory, InitialPreparations, MakersMark);
     }
+    // If we already used IQ, don't put it inside rotation again
+    if (currentRotation.some(a => a.is(InnerQuiet))) {
+      excludedActions.push(InnerQuiet);
+    }
+    // If previous action was observe, prefer the combo actions
+    if (index > 0 && currentRotation[index].is(Observe)) {
+      availableActions = [new FocusedSynthesis(), new FocusedTouch()];
+    }
+    // If there's no IQ at turn > 2, add it !
+    if (index > 1 && !currentRotation.some(a => a.is(InnerQuiet))) {
+      availableActions = [new InnerQuiet()];
+    }
+    // Under innovation or GS? Prefer quality actions
+    if (
+      (index > 0 && run.simulation.getBuff(Buff.INNOVATION)) ||
+      run.simulation.getBuff(Buff.GREAT_STRIDES)
+    ) {
+      excludedActions.push(ProgressAction);
+    }
+    // 11 stacks of IQ? You should consider blessing.
+    if (
+      run.simulation.getBuff(Buff.INNER_QUIET) &&
+      run.simulation.getBuff(Buff.INNER_QUIET).stacks === 11
+    ) {
+      availableActions = [
+        new GreatStrides(),
+        new Innovation(),
+        new Ingenuity(),
+        new IngenuityII(),
+        new ByregotsBlessing()
+      ];
+    }
+
+    // Remove all the excluded actions
+    availableActions = availableActions.filter(a => {
+      return !excludedActions.some(skippedAction => a.is(skippedAction));
+    });
     return availableActions[Math.floor(Math.random() * availableActions.length)];
   }
 
