@@ -17,9 +17,9 @@ import {
   Innovation,
   MakersMark,
   MuscleMemory,
-  NameOfTheElements,
   Observe,
   ProgressAction,
+  QualityAction,
   Reclaim,
   Reuse,
   Satisfaction,
@@ -256,6 +256,11 @@ export class Solver {
         new IngenuityII(),
         new ByregotsBlessing()
       ];
+    }
+
+    // If there's no IQ running, don't use quality actions
+    if (!run.simulation.getBuff(Buff.INNER_QUIET)) {
+      excludedActions.push(QualityAction);
     }
 
     // Remove all the excluded actions
