@@ -110,6 +110,45 @@ export const dwarvenMythrilNugget: Craft = {
   ]
 };
 
+export const dwarvenMythrilRing: Craft = {
+  id: '4461',
+  job: 11,
+  rlvl: 430,
+  durability: 80,
+  quality: 20287,
+  progress: 3943,
+  lvl: 80,
+  suggestedCraftsmanship: 1866,
+  suggestedControl: 1733,
+  hq: 1,
+  quickSynth: 1,
+  ingredients: [
+    {
+      id: 27715,
+      amount: 1,
+      quality: 5154.554
+    },
+    {
+      id: 27757,
+      amount: 1,
+      quality: 5154.554
+    },
+    {
+      id: 27749,
+      amount: 1,
+      quality: 4906.142
+    },
+    {
+      id: 10,
+      amount: 7
+    },
+    {
+      id: 8,
+      amount: 7
+    }
+  ]
+};
+
 export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474, true, 70, [
   70,
   70,
@@ -119,6 +158,17 @@ export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474
   70,
   70,
   70
+]);
+
+export const gsm80LowStats: CrafterStats = new CrafterStats(11, 1751, 1501, 493, false, 80, [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
 ]);
 
 export const lvl80Stats: CrafterStats = new CrafterStats(14, 2218, 2275, 541, true, 80, [

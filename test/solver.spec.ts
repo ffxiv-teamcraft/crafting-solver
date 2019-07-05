@@ -2,11 +2,13 @@ import { Solver } from '../src/solver';
 import {
   alc70i350Stats,
   dwarvenMythrilNugget,
+  dwarvenMythrilRing,
   enchantedTruegoldInkRecipe,
+  gsm80LowStats,
   infusionOfMindRecipe,
   lvl80Stats
 } from './mock';
-import { CraftingActionsRegistry, Simulation } from '@ffxiv-teamcraft/simulator';
+import { Simulation } from '@ffxiv-teamcraft/simulator';
 
 describe('Solver tests', () => {
   it('Should be able to solve lvl 70 rotation', () => {
@@ -26,12 +28,20 @@ describe('Solver tests', () => {
   });
 
   it('Should be able to solve lvl 78 40 dur rotation with lvl 80 stats', () => {
-    const solver = new Solver(enchantedTruegoldInkRecipe, alc70i350Stats, {
+    const solver = new Solver(enchantedTruegoldInkRecipe, lvl80Stats, {
       hqTarget: 15
     });
     const rotation = solver.run();
     const run = new Simulation(dwarvenMythrilNugget, rotation, lvl80Stats).run(true);
-    console.log(rotation);
+    expect(run.hqPercent).toBeGreaterThanOrEqual(10);
+  });
+
+  it('Should be able to solve lvl 80 80 dur rotation with low lvl 80 stats', () => {
+    const solver = new Solver(dwarvenMythrilRing, gsm80LowStats, {
+      hqTarget: 100
+    });
+    const rotation = solver.run();
+    const run = new Simulation(dwarvenMythrilRing, rotation, gsm80LowStats).run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(10);
   });
 });

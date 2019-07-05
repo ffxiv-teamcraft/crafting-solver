@@ -4,8 +4,6 @@ export interface SolverConfiguration {
    */
   populationSize: number;
 
-  safe: boolean;
-
   hqTarget: number;
 
   /**

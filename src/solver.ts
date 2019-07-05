@@ -19,7 +19,6 @@ import {
   MuscleMemory,
   Observe,
   ProgressAction,
-  QualityAction,
   Reclaim,
   Reuse,
   Satisfaction,
@@ -89,29 +88,18 @@ export class Solver {
    */
   public run(): CraftingAction[] {
     let best = this.getSortedPopulation()[0];
-    let bestRun = new Simulation(this.recipe, best, this.stats).run(
-      false,
-      Infinity,
-      this.config.safe
-    );
+    let bestRun = new Simulation(this.recipe, best, this.stats).run(true);
     let hqTarget = this.config.hqTarget;
     let iteration = 0;
     while (bestRun.hqPercent < hqTarget || !bestRun.success) {
       this.newIteration();
       best = this.getSortedPopulation()[0];
-      bestRun = new Simulation(this.recipe, best, this.stats).run(
-        false,
-        Infinity,
-        this.config.safe
-      );
+      bestRun = new Simulation(this.recipe, best, this.stats).run(true);
       iteration++;
       if (iteration % 100 === 0) {
         hqTarget -= 10;
       }
-      if (iteration % 300 === 0) {
-        this.reset();
-      }
-      if (iteration > 900) {
+      if (iteration === 300) {
         break;
       }
     }
@@ -129,7 +117,7 @@ export class Solver {
 
   public evaluate(rotation: CraftingAction[]): number {
     const simulation = new Simulation(this.recipe, rotation, this.stats);
-    const simulationResult = simulation.run(true, Infinity, this.config.safe);
+    const simulationResult = simulation.run(true);
     // Compute base score
     let score = Math.floor(
       (simulationResult.simulation.progression / this.recipe.progress) * simulationResult.hqPercent
@@ -230,7 +218,7 @@ export class Solver {
       excludedActions.push(InnerQuiet);
     }
     // If previous action was observe, prefer the combo actions
-    if (index > 0 && currentRotation[index].is(Observe)) {
+    if (index > 0 && currentRotation[index - 1].is(Observe)) {
       availableActions = [new FocusedSynthesis(), new FocusedTouch()];
     }
     // If there's no IQ at turn > 2, add it !
@@ -258,11 +246,6 @@ export class Solver {
       ];
     }
 
-    // If there's no IQ running, don't use quality actions
-    if (!run.simulation.getBuff(Buff.INNER_QUIET)) {
-      excludedActions.push(QualityAction);
-    }
-
     // Remove all the excluded actions
     availableActions = availableActions.filter(a => {
       return !excludedActions.some(skippedAction => a.is(skippedAction));
@@ -277,7 +260,7 @@ export class Solver {
     do {
       rotation.push(this.randomAction(rotation));
       simulation.reset();
-      simulation.run(false, Infinity, this.config.safe);
+      simulation.run(false);
     } while (simulation.success === undefined);
     return rotation;
   }
