@@ -63,7 +63,7 @@ export class Solver {
     }
     this.availableActions = CraftingActionsRegistry.ALL_ACTIONS.map(
       (a: any) => a.action as CraftingAction
-    ).filter(action => {
+    ).filter((action: CraftingAction) => {
       const levelRequirement = action.getLevelRequirement();
       if (
         levelRequirement.job !== CraftingJob.ANY &&
@@ -73,20 +73,24 @@ export class Solver {
       }
       return this.stats.level >= levelRequirement.level;
     });
-    this.reset();
   }
 
-  private reset() {
+  private reset(seed?: CraftingAction[]) {
     this.population = [];
     for (let i = 0; i < this.config.populationSize; i++) {
-      this.population.push(this.generateRotation());
+      if (seed === undefined) {
+        this.population.push(this.generateRotation());
+      } else {
+        this.population.push(this.getMutation(seed));
+      }
     }
   }
 
   /**
    * Finds the best rotation based on recipe and stats given.
    */
-  public run(): CraftingAction[] {
+  public run(seed?: CraftingAction[]): CraftingAction[] {
+    this.reset(seed);
     let best = this.getSortedPopulation()[0];
     let bestRun = new Simulation(this.recipe, best, this.stats).run(true);
     let hqTarget = this.config.hqTarget;
@@ -122,6 +126,9 @@ export class Solver {
     let score = Math.floor(
       (simulationResult.simulation.progression / this.recipe.progress) * simulationResult.hqPercent
     );
+    if (simulationResult.hqPercent >= 90) {
+      score *= 1.5;
+    }
     // Apply bonuses
     if (rotation.some(a => a.is(ByregotsBlessing))) {
       score *= 1.1;

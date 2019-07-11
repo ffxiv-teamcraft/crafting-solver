@@ -8,7 +8,7 @@ import {
   infusionOfMindRecipe,
   lvl80Stats
 } from './mock';
-import { Simulation } from '@ffxiv-teamcraft/simulator';
+import { CraftingActionsRegistry, Simulation } from '@ffxiv-teamcraft/simulator';
 
 describe('Solver tests', () => {
   it('Should be able to solve lvl 70 rotation', () => {
@@ -25,6 +25,33 @@ describe('Solver tests', () => {
     const rotation = solver.run();
     const run = new Simulation(enchantedTruegoldInkRecipe, rotation, alc70i350Stats).run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(40);
+  });
+
+  it('Should be able to solve lvl 75 rotation with lvl 70 stats using a seed', () => {
+    const solver = new Solver(enchantedTruegoldInkRecipe, alc70i350Stats);
+    const seed = CraftingActionsRegistry.importFromCraftOpt([
+      'muscleMemory',
+      'comfortZone',
+      'innerQuiet',
+      'manipulation2',
+      'steadyHand2',
+      'prudentTouch',
+      'prudentTouch',
+      'prudentTouch',
+      'prudentTouch',
+      'steadyHand2',
+      'prudentTouch',
+      'prudentTouch',
+      'prudentTouch',
+      'carefulSynthesis3',
+      'carefulSynthesis3'
+    ]);
+
+    const rotation = solver.run(seed);
+    const run = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats).run(true);
+    console.log(rotation);
+
+    expect(run.hqPercent).toBeGreaterThanOrEqual(80);
   });
 
   it('Should be able to solve lvl 78 40 dur rotation with lvl 80 stats', () => {
