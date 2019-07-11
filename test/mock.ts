@@ -149,6 +149,31 @@ export const dwarvenMythrilRing: Craft = {
   ]
 };
 
+export const lvl71Recipe: Craft = {
+  id: '3812',
+  job: 8,
+  rlvl: 390,
+  durability: 80,
+  quality: 14071,
+  progress: 3149,
+  lvl: 71,
+  suggestedCraftsmanship: 1320,
+  suggestedControl: 1220,
+  hq: 1,
+  quickSynth: 1,
+  ingredients: [
+    {
+      id: 27683,
+      amount: 4,
+      quality: 2638.3125
+    },
+    {
+      id: 10,
+      amount: 6
+    }
+  ]
+};
+
 export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474, true, 70, [
   70,
   70,
@@ -159,6 +184,16 @@ export const alc70i350Stats: CrafterStats = new CrafterStats(14, 1467, 1468, 474
   70,
   70
 ]);
+
+export const ALC_1770_1520_564_STATS: CrafterStats = new CrafterStats(
+  14,
+  1770,
+  1520,
+  564,
+  true,
+  70,
+  [70, 70, 70, 70, 70, 70, 70, 70]
+);
 
 export const gsm80LowStats: CrafterStats = new CrafterStats(11, 1751, 1501, 493, false, 80, [
   80,

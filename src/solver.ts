@@ -1,11 +1,13 @@
 import {
   Buff,
   ByregotsBlessing,
+  ComfortZone,
   Craft,
   CrafterStats,
   CraftingAction,
   CraftingActionsRegistry,
   CraftingJob,
+  FlawlessSynthesis,
   FocusedSynthesis,
   FocusedTouch,
   GreatStrides,
@@ -16,6 +18,9 @@ import {
   InnerQuiet,
   Innovation,
   MakersMark,
+  Manipulation,
+  ManipulationII,
+  MastersMend,
   MuscleMemory,
   Observe,
   ProgressAction,
@@ -95,13 +100,13 @@ export class Solver {
     let bestRun = new Simulation(this.recipe, best, this.stats).run(true);
     let hqTarget = this.config.hqTarget;
     let iteration = 0;
-    while (bestRun.hqPercent < hqTarget || !bestRun.success) {
+    while (bestRun.hqPercent < hqTarget || !bestRun.success || iteration < 10) {
       this.newIteration();
       best = this.getSortedPopulation()[0];
       bestRun = new Simulation(this.recipe, best, this.stats).run(true);
       iteration++;
       if (iteration % 100 === 0) {
-        hqTarget -= 10;
+        this.reset(seed);
       }
       if (iteration === 300) {
         break;
@@ -126,16 +131,33 @@ export class Solver {
     let score = Math.floor(
       (simulationResult.simulation.progression / this.recipe.progress) * simulationResult.hqPercent
     );
+    if (simulation.success) {
+      score *= 1.2;
+    }
     if (simulationResult.hqPercent >= 90) {
       score *= 1.5;
     }
     // Apply bonuses
-    if (rotation.some(a => a.is(ByregotsBlessing))) {
-      score *= 1.1;
-    }
-    if (rotation.some(a => a.is(InnerQuiet))) {
-      score *= 1.1;
-    }
+    const bonusActions = [
+      ByregotsBlessing,
+      InnerQuiet,
+      [Ingenuity, IngenuityII],
+      [MastersMend, Manipulation, ManipulationII],
+      ComfortZone,
+      GreatStrides,
+      Innovation
+    ];
+    bonusActions.forEach(entry => {
+      if (entry instanceof Array) {
+        if (rotation.some(a => entry.some(action => a.is(action)))) {
+          score *= 1.1;
+        }
+      } else {
+        if (rotation.some(a => a.is(entry))) {
+          score *= 1.1;
+        }
+      }
+    });
     // For each action used with success rate < 70%, reduce score
     score -= 2 * rotation.filter(a => a.getSuccessRate(simulation) < 70).length;
     return Math.floor(score);
@@ -180,7 +202,7 @@ export class Solver {
   }
 
   private getMutation(rotation: CraftingAction[]): CraftingAction[] {
-    const roll = Math.floor(Math.random() * 3);
+    const roll = Math.round(Math.random() * 2);
     const clone = [...rotation];
     const affectedIndex = Math.floor(Math.random() * clone.length);
     switch (roll) {
@@ -193,10 +215,6 @@ export class Solver {
       case 2: // Remove an action
         clone.splice(affectedIndex, 1);
         break;
-      case 3: // Move an action from an index to another
-        const action = clone.splice(affectedIndex, 1)[0];
-        clone.splice(Math.floor(Math.random() * clone.length), 0, action);
-        break;
     }
     return clone;
   }
@@ -205,8 +223,15 @@ export class Solver {
     currentRotation: CraftingAction[],
     index = currentRotation.length - 1
   ): CraftingAction {
-    const run = new Simulation(this.recipe, currentRotation, this.stats).run();
+    const isInsertingAction = index < currentRotation.length - 1;
+
+    // Run a simulation and stop it at the given index to read buffs
+    const run = new Simulation(this.recipe, currentRotation, this.stats).run(false, index);
+
+    // Prepare an array of available actions to be filtered later on
     let availableActions = this.availableActions;
+
+    // Exclude some useless actions
     const excludedActions: Class<CraftingAction>[] = [
       Reclaim,
       Reuse,
@@ -214,7 +239,8 @@ export class Solver {
       Satisfaction,
       TricksOfTheTrade,
       WhistleWhileYouWork,
-      HeartOfTheCrafter
+      HeartOfTheCrafter,
+      FlawlessSynthesis
     ];
     // If it's not first step, remove first step actions
     if (index > 0 || currentRotation.length > 0) {
@@ -251,6 +277,16 @@ export class Solver {
         new IngenuityII(),
         new ByregotsBlessing()
       ];
+    }
+
+    if (isInsertingAction) {
+      // If we're inserting before a focused action, it needs to be Observe
+      if (
+        currentRotation[index + 1].is(FocusedTouch) ||
+        currentRotation[index + 1].is(FocusedSynthesis)
+      ) {
+        availableActions = [new Observe()];
+      }
     }
 
     // Remove all the excluded actions
