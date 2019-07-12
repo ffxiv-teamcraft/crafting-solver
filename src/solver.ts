@@ -202,7 +202,7 @@ export class Solver {
   }
 
   private getMutation(rotation: CraftingAction[]): CraftingAction[] {
-    const roll = Math.round(Math.random() * 2);
+    const roll = Math.round(Math.random() * 3);
     const clone = [...rotation];
     const affectedIndex = Math.floor(Math.random() * clone.length);
     switch (roll) {
@@ -214,6 +214,8 @@ export class Solver {
         break;
       case 2: // Remove an action
         clone.splice(affectedIndex, 1);
+        break;
+      default:
         break;
     }
     return clone;
