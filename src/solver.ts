@@ -1,5 +1,6 @@
 import {
   Buff,
+  BuffAction,
   ByregotsBlessing,
   ComfortZone,
   Craft,
@@ -21,13 +22,16 @@ import {
   Manipulation,
   ManipulationII,
   MastersMend,
+  MastersMendII,
   MuscleMemory,
   Observe,
   ProgressAction,
+  QualityAction,
   Reclaim,
   Reuse,
   Satisfaction,
   Simulation,
+  SpecialtyAction,
   TrainedHand,
   TricksOfTheTrade,
   WhistleWhileYouWork
@@ -100,7 +104,12 @@ export class Solver {
     let bestRun = new Simulation(this.recipe, best, this.stats).run(true);
     let hqTarget = this.config.hqTarget;
     let iteration = 0;
-    while (bestRun.hqPercent < hqTarget || !bestRun.success || iteration < 10) {
+    while (
+      bestRun.hqPercent < hqTarget ||
+      !bestRun.success ||
+      iteration < 10 ||
+      this.evaluate(best) < 300
+    ) {
       this.newIteration();
       best = this.getSortedPopulation()[0];
       bestRun = new Simulation(this.recipe, best, this.stats).run(true);
@@ -118,9 +127,13 @@ export class Solver {
         bestRun.success
       }, iterations: ${iteration}`
     );
+
+    if (this.evaluate(best) > 600) {
+      console.log('roxxor !', best);
+    }
     // Remove skipped actions and return the rotation
     return best.filter((action, index) => {
-      return !bestRun.steps[index].skipped;
+      return !bestRun.steps[index].skipped && bestRun.steps[index].success;
     });
   }
 
@@ -142,7 +155,7 @@ export class Solver {
       ByregotsBlessing,
       InnerQuiet,
       [Ingenuity, IngenuityII],
-      [MastersMend, Manipulation, ManipulationII],
+      [MastersMend, MastersMendII, Manipulation, ManipulationII],
       ComfortZone,
       GreatStrides,
       Innovation
@@ -156,6 +169,63 @@ export class Solver {
         if (rotation.some(a => a.is(entry))) {
           score *= 1.1;
         }
+      }
+    });
+
+    // If we used all the durability, apply a bonus
+    if (simulation.durability <= 0 && simulation.success) {
+      score *= 1.1;
+    }
+
+    simulation.reset();
+    // Detect wrong timing on actions, to add a penalty based on them
+    rotation.forEach((action, index) => {
+      if (action.is(MastersMend) || action.is(MastersMendII)) {
+        // If we are using master's mend without anything to repair, penalty !
+        if (!rotation.slice(0, index).some(a => a.getDurabilityCost(simulation) > 0)) {
+          score *= 0.8;
+        }
+      }
+      if (action.is(QualityAction)) {
+        // If we're using a quality action with no IQ, penalty !
+        if (!rotation.slice(0, index).some(a => a.is(InnerQuiet))) {
+          score *= 0.8;
+        }
+      }
+      if (action.is(BuffAction) && index > 0) {
+        // If we are overlapping some buffs, penalty !
+        if (
+          rotation.slice(0, index).some((a, i) => {
+            return (
+              a.is(BuffAction) &&
+              (a as BuffAction).getBuff() === (action as BuffAction).getBuff() &&
+              index - i <= (action as BuffAction).getDuration(simulation)
+            );
+          })
+        ) {
+          score *= 0.8;
+        }
+      }
+      // If we have Observe with no focused action after, penalty !
+      if (action.is(Observe) && index < rotation.length - 1) {
+        if (!rotation[index + 1].is(FocusedSynthesis) && !rotation[index + 1].is(FocusedTouch)) {
+          score *= 0.8;
+        }
+      }
+      // Same for focused actions without Observe
+      if (action.is(FocusedTouch) || action.is(FocusedSynthesis)) {
+        if (index === 0 || !rotation[index - 1].is(Observe)) {
+          score *= 0.8;
+        }
+      }
+
+      // If we are using Great Strides or Innovation and wasting it, penalty !
+      if (
+        action.is(Innovation) &&
+        action.is(GreatStrides) &&
+        !rotation.slice(index, index + 3).some(a => a.is(QualityAction))
+      ) {
+        score *= 0.8;
       }
     });
     // For each action used with success rate < 70%, reduce score
@@ -244,6 +314,9 @@ export class Solver {
       HeartOfTheCrafter,
       FlawlessSynthesis
     ];
+    if (!run.simulation.getBuff(Buff.INITIAL_PREPARATIONS)) {
+      excludedActions.push(SpecialtyAction);
+    }
     // If it's not first step, remove first step actions
     if (index > 0 || currentRotation.length > 0) {
       excludedActions.push(MuscleMemory, InitialPreparations, MakersMark);

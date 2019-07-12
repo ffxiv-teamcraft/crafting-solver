@@ -61,7 +61,7 @@ describe('Solver tests', () => {
       'byregotsBlessing',
       'carefulSynthesis3'
     ]);
-    expect(solver.evaluate(rotation)).toBeGreaterThan(200);
+    expect(solver.evaluate(rotation)).toBeGreaterThan(300);
   });
 
   it('Should be able to solve lvl 75 rotation with lvl 70 stats using a seed', () => {
