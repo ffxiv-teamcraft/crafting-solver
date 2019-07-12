@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.1.1...v1.2.0) (2019-07-12)
+
+
+### Bug Fixes
+
+* added more penalties and fixed issues with useless buffs ([0019f37](https://github.com/ffxiv-teamcraft/crafting-solver/commit/0019f37))
+* mutation now has a chance of not happening at all ([c654cdb](https://github.com/ffxiv-teamcraft/crafting-solver/commit/c654cdb))
+
+
+### Features
+
+* implemented a penalties system for better rotations ([7df9dbf](https://github.com/ffxiv-teamcraft/crafting-solver/commit/7df9dbf))
+
+
+
 ### [1.1.1](https://github.com/ffxiv-teamcraft/crafting-solver/compare/v1.1.0...v1.1.1) (2019-07-11)
 
 
