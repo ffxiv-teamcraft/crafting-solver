@@ -24,6 +24,7 @@ import {
   MastersMend,
   MastersMendII,
   MuscleMemory,
+  NymeiasWheel,
   Observe,
   ProgressAction,
   QualityAction,
@@ -32,7 +33,9 @@ import {
   Satisfaction,
   Simulation,
   SpecialtyAction,
+  TrainedEye,
   TrainedHand,
+  TrainedInstinct,
   TricksOfTheTrade,
   WhistleWhileYouWork
 } from '@ffxiv-teamcraft/simulator';
@@ -122,15 +125,12 @@ export class Solver {
       }
     }
 
-    console.log(
-      `Found a solution ! Score: ${this.evaluate(best)}, HQ%: ${bestRun.hqPercent}, success: ${
-        bestRun.success
-      }, iterations: ${iteration}`
-    );
+    // console.log(
+    //   `Found a solution ! Score: ${this.evaluate(best)}, HQ%: ${bestRun.hqPercent}, success: ${
+    //     bestRun.success
+    //     }, iterations: ${iteration}`
+    // );
 
-    if (this.evaluate(best) > 600) {
-      console.log('roxxor !', best);
-    }
     // Remove skipped actions and return the rotation
     return best.filter((action, index) => {
       return !bestRun.steps[index].skipped && bestRun.steps[index].success;
@@ -142,7 +142,8 @@ export class Solver {
     const simulationResult = simulation.run(true);
     // Compute base score
     let score = Math.floor(
-      (simulationResult.simulation.progression / this.recipe.progress) * simulationResult.hqPercent
+      Math.min(simulationResult.simulation.progression / this.recipe.progress, 1) *
+        simulationResult.hqPercent
     );
     if (simulation.success) {
       score *= 1.2;
@@ -228,8 +229,6 @@ export class Solver {
         score *= 0.8;
       }
     });
-    // For each action used with success rate < 70%, reduce score
-    score -= 2 * rotation.filter(a => a.getSuccessRate(simulation) < 70).length;
     return Math.floor(score);
   }
 
@@ -312,14 +311,22 @@ export class Solver {
       TricksOfTheTrade,
       WhistleWhileYouWork,
       HeartOfTheCrafter,
-      FlawlessSynthesis
+      FlawlessSynthesis,
+      NymeiasWheel,
+      MakersMark
     ];
     if (!run.simulation.getBuff(Buff.INITIAL_PREPARATIONS)) {
       excludedActions.push(SpecialtyAction);
     }
+
+    // If we don't have more than 10 levels above the recipe, remove trained actions.
+    if (this.stats.level - this.recipe.lvl < 10) {
+      excludedActions.push(TrainedInstinct, TrainedEye);
+    }
+
     // If it's not first step, remove first step actions
     if (index > 0 || currentRotation.length > 0) {
-      excludedActions.push(MuscleMemory, InitialPreparations, MakersMark);
+      excludedActions.push(MuscleMemory, InitialPreparations);
     }
     // If we already used IQ, don't put it inside rotation again
     if (currentRotation.some(a => a.is(InnerQuiet))) {
