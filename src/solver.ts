@@ -2,42 +2,29 @@ import {
   Buff,
   BuffAction,
   ByregotsBlessing,
-  ComfortZone,
   Craft,
   CrafterStats,
   CraftingAction,
   CraftingActionsRegistry,
   CraftingJob,
-  FlawlessSynthesis,
+  FinalAppraisal,
   FocusedSynthesis,
   FocusedTouch,
   GreatStrides,
-  HeartOfTheCrafter,
   Ingenuity,
-  IngenuityII,
-  InitialPreparations,
   InnerQuiet,
   Innovation,
-  MakersMark,
   Manipulation,
-  ManipulationII,
   MastersMend,
-  MastersMendII,
   MuscleMemory,
-  NymeiasWheel,
   Observe,
   ProgressAction,
   QualityAction,
-  Reclaim,
+  RemoveFinalAppraisal,
   Reuse,
-  Satisfaction,
   Simulation,
-  SpecialtyAction,
   TrainedEye,
-  TrainedHand,
-  TrainedInstinct,
-  TricksOfTheTrade,
-  WhistleWhileYouWork
+  TricksOfTheTrade
 } from '@ffxiv-teamcraft/simulator';
 import { SolverConfiguration } from './solver-configuration';
 import { defaultConfiguration } from './default-configuration';
@@ -155,9 +142,8 @@ export class Solver {
     const bonusActions = [
       ByregotsBlessing,
       InnerQuiet,
-      [Ingenuity, IngenuityII],
-      [MastersMend, MastersMendII, Manipulation, ManipulationII],
-      ComfortZone,
+      [Ingenuity],
+      [MastersMend, Manipulation],
       GreatStrides,
       Innovation
     ];
@@ -181,7 +167,7 @@ export class Solver {
     simulation.reset();
     // Detect wrong timing on actions, to add a penalty based on them
     rotation.forEach((action, index) => {
-      if (action.is(MastersMend) || action.is(MastersMendII)) {
+      if (action.is(MastersMend)) {
         // If we are using master's mend without anything to repair, penalty !
         if (!rotation.slice(0, index).some(a => a.getDurabilityCost(simulation) > 0)) {
           score *= 0.8;
@@ -303,30 +289,19 @@ export class Solver {
     let availableActions = this.availableActions;
 
     // Exclude some useless actions
-    const excludedActions: Class<CraftingAction>[] = [
-      Reclaim,
-      Reuse,
-      TrainedHand,
-      Satisfaction,
-      TricksOfTheTrade,
-      WhistleWhileYouWork,
-      HeartOfTheCrafter,
-      FlawlessSynthesis,
-      NymeiasWheel,
-      MakersMark
-    ];
-    if (!run.simulation.getBuff(Buff.INITIAL_PREPARATIONS)) {
-      excludedActions.push(SpecialtyAction);
-    }
+    const excludedActions: Class<CraftingAction>[] = [Reuse, TricksOfTheTrade];
 
     // If we don't have more than 10 levels above the recipe, remove trained actions.
     if (this.stats.level - this.recipe.lvl < 10) {
-      excludedActions.push(TrainedInstinct, TrainedEye);
+      excludedActions.push(TrainedEye);
     }
 
     // If it's not first step, remove first step actions
-    if (index > 0 || currentRotation.length > 0) {
-      excludedActions.push(MuscleMemory, InitialPreparations);
+    if (
+      index > 0 ||
+      currentRotation.filter(a => !a.is(FinalAppraisal) && !a.is(RemoveFinalAppraisal)).length > 0
+    ) {
+      excludedActions.push(MuscleMemory);
     }
     // If we already used IQ, don't put it inside rotation again
     if (currentRotation.some(a => a.is(InnerQuiet))) {
@@ -356,7 +331,6 @@ export class Solver {
         new GreatStrides(),
         new Innovation(),
         new Ingenuity(),
-        new IngenuityII(),
         new ByregotsBlessing()
       ];
     }

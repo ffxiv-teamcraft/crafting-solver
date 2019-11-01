@@ -76,9 +76,10 @@
     ]
   },
   "devDependencies": {
-    "@kaiu/serializer": "^1.4.0",
     "@commitlint/cli": "^7.1.2",
     "@commitlint/config-conventional": "^7.1.2",
+    "@ffxiv-teamcraft/simulator": "^2.1.1",
+    "@kaiu/serializer": "^1.4.0",
     "@types/jest": "^23.3.2",
     "@types/lodash.camelcase": "^4.3.6",
     "@types/node": "^10.11.0",
@@ -117,10 +118,9 @@
     "tslint-config-prettier": "^1.15.0",
     "tslint-config-standard": "^8.0.1",
     "typedoc": "^0.12.0",
-    "typescript": "^3.1.6",
-    "@ffxiv-teamcraft/simulator": "^1.2.7"
+    "typescript": "^3.1.6"
   },
   "peerDependencies": {
-    "@ffxiv-teamcraft/simulator": "^1.2.7"
+    "@ffxiv-teamcraft/simulator": "^2.1.0"
   }
 }
