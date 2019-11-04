@@ -1,6 +1,5 @@
 import {
   Buff,
-  BuffAction,
   ByregotsBlessing,
   Craft,
   CrafterStats,
@@ -20,6 +19,7 @@ import {
   Observe,
   ProgressAction,
   QualityAction,
+  Reflect,
   RemoveFinalAppraisal,
   Reuse,
   Simulation,
@@ -98,14 +98,14 @@ export class Solver {
       bestRun.hqPercent < hqTarget ||
       !bestRun.success ||
       iteration < 10 ||
-      this.evaluate(best) < 300
+      this.evaluate(best) < 130
     ) {
       this.newIteration();
       best = this.getSortedPopulation()[0];
       bestRun = new Simulation(this.recipe, best, this.stats).run(true);
       iteration++;
       if (iteration % 100 === 0) {
-        this.reset(seed);
+        this.reset(best);
       }
       if (iteration === 300) {
         break;
@@ -115,8 +115,9 @@ export class Solver {
     // console.log(
     //   `Found a solution ! Score: ${this.evaluate(best)}, HQ%: ${bestRun.hqPercent}, success: ${
     //     bestRun.success
-    //     }, iterations: ${iteration}`
+    //   }, iterations: ${iteration}`
     // );
+    // console.log(best);
 
     // Remove skipped actions and return the rotation
     return best.filter((action, index) => {
@@ -132,90 +133,79 @@ export class Solver {
       Math.min(simulationResult.simulation.progression / this.recipe.progress, 1) *
         simulationResult.hqPercent
     );
-    if (simulation.success) {
-      score *= 1.2;
-    }
-    if (simulationResult.hqPercent >= 90) {
-      score *= 1.5;
-    }
+    score += simulationResult.hqPercent;
     // Apply bonuses
     const bonusActions = [
       ByregotsBlessing,
-      InnerQuiet,
       [Ingenuity],
       [MastersMend, Manipulation],
-      GreatStrides,
-      Innovation
+      [GreatStrides, Innovation]
     ];
     bonusActions.forEach(entry => {
       if (entry instanceof Array) {
         if (rotation.some(a => entry.some(action => a.is(action)))) {
-          score *= 1.1;
+          score += 5;
         }
       } else {
         if (rotation.some(a => a.is(entry))) {
-          score *= 1.1;
+          score += 5;
         }
       }
     });
 
     // If we used all the durability, apply a bonus
     if (simulation.durability <= 0 && simulation.success) {
-      score *= 1.1;
+      score += 5;
     }
 
     simulation.reset();
     // Detect wrong timing on actions, to add a penalty based on them
     rotation.forEach((action, index) => {
+      if (index === 0 && !(action.is(MuscleMemory) || action.is(Reflect))) {
+        score -= 10;
+      }
+
       if (action.is(MastersMend)) {
         // If we are using master's mend without anything to repair, penalty !
-        if (!rotation.slice(0, index).some(a => a.getDurabilityCost(simulation) > 0)) {
-          score *= 0.8;
+        if (
+          rotation.slice(0, index).reduce((dur, a) => a.getDurabilityCost(simulation) + dur, 0) < 30
+        ) {
+          score -= 5;
         }
       }
       if (action.is(QualityAction)) {
         // If we're using a quality action with no IQ, penalty !
-        if (!rotation.slice(0, index).some(a => a.is(InnerQuiet))) {
-          score *= 0.8;
-        }
-      }
-      if (action.is(BuffAction) && index > 0) {
-        // If we are overlapping some buffs, penalty !
-        if (
-          rotation.slice(0, index).some((a, i) => {
-            return (
-              a.is(BuffAction) &&
-              (a as BuffAction).getBuff() === (action as BuffAction).getBuff() &&
-              index - i <= (action as BuffAction).getDuration(simulation)
-            );
-          })
-        ) {
-          score *= 0.8;
+        if (!rotation.slice(0, index).some(a => a.is(InnerQuiet) || a.is(Reflect))) {
+          score -= 10;
         }
       }
       // If we have Observe with no focused action after, penalty !
       if (action.is(Observe) && index < rotation.length - 1) {
         if (!rotation[index + 1].is(FocusedSynthesis) && !rotation[index + 1].is(FocusedTouch)) {
-          score *= 0.8;
+          score -= 20;
         }
       }
       // Same for focused actions without Observe
       if (action.is(FocusedTouch) || action.is(FocusedSynthesis)) {
         if (index === 0 || !rotation[index - 1].is(Observe)) {
-          score *= 0.8;
+          score -= 20;
         }
       }
 
       // If we are using Great Strides or Innovation and wasting it, penalty !
       if (
-        action.is(Innovation) &&
         action.is(GreatStrides) &&
         !rotation.slice(index, index + 3).some(a => a.is(QualityAction))
       ) {
-        score *= 0.8;
+        score -= 10;
+      }
+
+      // If we are using actions that have <100% success rate, penalty !
+      if (action.getSuccessRate(simulation) < 100) {
+        score -= 5;
       }
     });
-    return Math.floor(score);
+    return score - rotation.length;
   }
 
   private getSortedPopulation(): CraftingAction[][] {
@@ -301,19 +291,15 @@ export class Solver {
       index > 0 ||
       currentRotation.filter(a => !a.is(FinalAppraisal) && !a.is(RemoveFinalAppraisal)).length > 0
     ) {
-      excludedActions.push(MuscleMemory);
+      excludedActions.push(MuscleMemory, Reflect);
     }
     // If we already used IQ, don't put it inside rotation again
-    if (currentRotation.some(a => a.is(InnerQuiet))) {
+    if (currentRotation.some(a => a.is(InnerQuiet) || a.is(Reflect))) {
       excludedActions.push(InnerQuiet);
     }
     // If previous action was observe, prefer the combo actions
     if (index > 0 && currentRotation[index - 1].is(Observe)) {
       availableActions = [new FocusedSynthesis(), new FocusedTouch()];
-    }
-    // If there's no IQ at turn > 2, add it !
-    if (index > 1 && !currentRotation.some(a => a.is(InnerQuiet))) {
-      availableActions = [new InnerQuiet()];
     }
     // Under innovation or GS? Prefer quality actions
     if (
@@ -344,7 +330,6 @@ export class Solver {
         availableActions = [new Observe()];
       }
     }
-
     // Remove all the excluded actions
     availableActions = availableActions.filter(a => {
       return !excludedActions.some(skippedAction => a.is(skippedAction));
