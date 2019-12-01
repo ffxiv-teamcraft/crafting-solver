@@ -129,17 +129,19 @@ export class Solver {
     const simulation = new Simulation(this.recipe, rotation, this.stats);
     const simulationResult = simulation.run(true);
 
-  // If we don't hit 100% progress, then we only need to worry about the progress we did reach.
-  let score = Math.min(simulationResult.simulation.progression, this.recipe.progress) * 100 / this.recipe.progress;
-  if (score < 100) return score;
+    // If we don't hit 100% progress, then we only need to worry about the progress we did reach.
+    let score =
+      (Math.min(simulationResult.simulation.progression, this.recipe.progress) * 100) /
+      this.recipe.progress;
+    if (score < 100) return score;
 
-  // Otherwise we can judge on HQ percentage
-  score += simulationResult.hqPercent;
-  if (score < 200) return score;
+    // Otherwise we can judge on HQ percentage
+    score += simulationResult.hqPercent;
+    if (score < 200) return score;
 
-  // If both rotations manage 100% HQ, then we make sure that shorter rotations give a better score
-  score += (50 - simulationResult.steps); // The constant only needs to be longer than the longest conceivable rotation to make sure things sort properly.
-  return score;
+    // If both rotations manage 100% HQ, then we make sure that shorter rotations give a better score
+    score += 50 - simulationResult.steps.length; // The constant only needs to be longer than the longest conceivable rotation to make sure things sort properly.
+    return score;
   }
 
   private getSortedPopulation(): CraftingAction[][] {
