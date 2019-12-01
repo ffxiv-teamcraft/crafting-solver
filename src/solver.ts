@@ -128,84 +128,18 @@ export class Solver {
   public evaluate(rotation: CraftingAction[]): number {
     const simulation = new Simulation(this.recipe, rotation, this.stats);
     const simulationResult = simulation.run(true);
-    // Compute base score
-    let score = Math.floor(
-      Math.min(simulationResult.simulation.progression / this.recipe.progress, 1) *
-        simulationResult.hqPercent
-    );
-    score += simulationResult.hqPercent;
-    // Apply bonuses
-    const bonusActions = [
-      ByregotsBlessing,
-      [Ingenuity],
-      [MastersMend, Manipulation],
-      [GreatStrides, Innovation]
-    ];
-    bonusActions.forEach(entry => {
-      if (entry instanceof Array) {
-        if (rotation.some(a => entry.some(action => a.is(action)))) {
-          score += 5;
-        }
-      } else {
-        if (rotation.some(a => a.is(entry))) {
-          score += 5;
-        }
-      }
-    });
 
-    // If we used all the durability, apply a bonus
-    if (simulation.durability <= 0 && simulation.success) {
-      score += 5;
-    }
+  // If we don't hit 100% progress, then we only need to worry about the progress we did reach.
+  let score = Math.min(simulationResult.simulation.progression, this.recipe.progress) * 100 / this.recipe.progress;
+  if (score < 100) return score;
 
-    simulation.reset();
-    // Detect wrong timing on actions, to add a penalty based on them
-    rotation.forEach((action, index) => {
-      if (index === 0 && !(action.is(MuscleMemory) || action.is(Reflect))) {
-        score -= 10;
-      }
+  // Otherwise we can judge on HQ percentage
+  score += simulationResult.hqPercent;
+  if (score < 200) return score;
 
-      if (action.is(MastersMend)) {
-        // If we are using master's mend without anything to repair, penalty !
-        if (
-          rotation.slice(0, index).reduce((dur, a) => a.getDurabilityCost(simulation) + dur, 0) < 30
-        ) {
-          score -= 5;
-        }
-      }
-      if (action.is(QualityAction)) {
-        // If we're using a quality action with no IQ, penalty !
-        if (!rotation.slice(0, index).some(a => a.is(InnerQuiet) || a.is(Reflect))) {
-          score -= 10;
-        }
-      }
-      // If we have Observe with no focused action after, penalty !
-      if (action.is(Observe) && index < rotation.length - 1) {
-        if (!rotation[index + 1].is(FocusedSynthesis) && !rotation[index + 1].is(FocusedTouch)) {
-          score -= 20;
-        }
-      }
-      // Same for focused actions without Observe
-      if (action.is(FocusedTouch) || action.is(FocusedSynthesis)) {
-        if (index === 0 || !rotation[index - 1].is(Observe)) {
-          score -= 20;
-        }
-      }
-
-      // If we are using Great Strides or Innovation and wasting it, penalty !
-      if (
-        action.is(GreatStrides) &&
-        !rotation.slice(index, index + 3).some(a => a.is(QualityAction))
-      ) {
-        score -= 10;
-      }
-
-      // If we are using actions that have <100% success rate, penalty !
-      if (action.getSuccessRate(simulation) < 100) {
-        score -= 5;
-      }
-    });
-    return score - rotation.length;
+  // If both rotations manage 100% HQ, then we make sure that shorter rotations give a better score
+  score += (50 - simulationResult.steps); // The constant only needs to be longer than the longest conceivable rotation to make sure things sort properly.
+  return score;
   }
 
   private getSortedPopulation(): CraftingAction[][] {
