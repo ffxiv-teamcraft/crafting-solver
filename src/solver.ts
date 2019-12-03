@@ -104,9 +104,6 @@ export class Solver {
       best = this.getSortedPopulation()[0];
       bestRun = new Simulation(this.recipe, best, this.stats).run(true);
       iteration++;
-      if (iteration % 100 === 0) {
-        this.reset(best);
-      }
       if (iteration === 300) {
         break;
       }

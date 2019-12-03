@@ -1,7 +1,6 @@
 import { Solver } from '../src/solver';
 import {
   alc70i350Stats,
-  ALC_1770_1520_564_STATS,
   dwarvenMythrilNugget,
   dwarvenMythrilRing,
   enchantedTruegoldInkRecipe,
@@ -15,8 +14,10 @@ describe('Solver tests', () => {
   it('Should be able to solve lvl 70 rotation', () => {
     const solver = new Solver(infusionOfMindRecipe, alc70i350Stats);
     const rotation = solver.run();
-    const run = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats).run(true);
+    const simulation = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats);
+    const run = simulation.run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(15);
+    expect(simulation.getReliabilityReport().successPercent).toBe(100);
   });
 
   it('Should be able to solve lvl 75 rotation with lvl 70 stats', () => {
@@ -24,8 +25,10 @@ describe('Solver tests', () => {
       hqTarget: 50
     });
     const rotation = solver.run();
-    const run = new Simulation(enchantedTruegoldInkRecipe, rotation, alc70i350Stats).run(true);
+    const simulation = new Simulation(enchantedTruegoldInkRecipe, rotation, alc70i350Stats);
+    const run = simulation.run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(40);
+    expect(simulation.getReliabilityReport().successPercent).toBe(100);
   });
 
   it('Should be able to solve lvl 75 rotation with lvl 70 stats using a seed', () => {
@@ -49,8 +52,10 @@ describe('Solver tests', () => {
     ]);
 
     const rotation = solver.run(seed);
-    const run = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats).run(true);
+    const simulation = new Simulation(infusionOfMindRecipe, rotation, alc70i350Stats);
+    const run = simulation.run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(80);
+    expect(simulation.getReliabilityReport().successPercent).toBe(100);
   });
 
   it('Should be able to solve lvl 78 40 dur rotation with lvl 80 stats', () => {
@@ -58,8 +63,10 @@ describe('Solver tests', () => {
       hqTarget: 50
     });
     const rotation = solver.run();
-    const run = new Simulation(dwarvenMythrilNugget, rotation, lvl80Stats).run(true);
+    const simulation = new Simulation(dwarvenMythrilNugget, rotation, lvl80Stats);
+    const run = simulation.run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(50);
+    expect(simulation.getReliabilityReport().successPercent).toBe(100);
   });
 
   it('Should be able to solve lvl 80 80 dur rotation with low lvl 80 stats', () => {
@@ -67,7 +74,9 @@ describe('Solver tests', () => {
       hqTarget: 100
     });
     const rotation = solver.run();
-    const run = new Simulation(dwarvenMythrilRing, rotation, gsm80LowStats).run(true);
+    const simulation = new Simulation(dwarvenMythrilRing, rotation, gsm80LowStats);
+    const run = simulation.run(true);
     expect(run.hqPercent).toBeGreaterThanOrEqual(50);
+    expect(simulation.getReliabilityReport().successPercent).toBe(100);
   });
 });
