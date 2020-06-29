@@ -10,18 +10,13 @@ import {
   FocusedSynthesis,
   FocusedTouch,
   GreatStrides,
-  Ingenuity,
   InnerQuiet,
   Innovation,
-  Manipulation,
-  MastersMend,
   MuscleMemory,
   Observe,
   ProgressAction,
-  QualityAction,
   Reflect,
   RemoveFinalAppraisal,
-  Reuse,
   Simulation,
   TrainedEye,
   TricksOfTheTrade
@@ -212,7 +207,7 @@ export class Solver {
     let availableActions = this.availableActions;
 
     // Exclude some useless actions
-    const excludedActions: Class<CraftingAction>[] = [Reuse, TricksOfTheTrade];
+    const excludedActions: Class<CraftingAction>[] = [TricksOfTheTrade];
 
     // If we don't have more than 10 levels above the recipe, remove trained actions.
     if (this.stats.level - this.recipe.lvl < 10) {
@@ -246,12 +241,7 @@ export class Solver {
       run.simulation.getBuff(Buff.INNER_QUIET) &&
       run.simulation.getBuff(Buff.INNER_QUIET).stacks === 11
     ) {
-      availableActions = [
-        new GreatStrides(),
-        new Innovation(),
-        new Ingenuity(),
-        new ByregotsBlessing()
-      ];
+      availableActions = [new GreatStrides(), new Innovation(), new ByregotsBlessing()];
     }
 
     if (isInsertingAction) {

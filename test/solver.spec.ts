@@ -35,20 +35,17 @@ describe('Solver tests', () => {
     const solver = new Solver(enchantedTruegoldInkRecipe, alc70i350Stats);
     const seed = CraftingActionsRegistry.importFromCraftOpt([
       'muscleMemory',
-      'comfortZone',
       'innerQuiet',
-      'manipulation2',
-      'steadyHand2',
+      'manipulation',
       'prudentTouch',
       'prudentTouch',
       'prudentTouch',
       'prudentTouch',
-      'steadyHand2',
       'prudentTouch',
       'prudentTouch',
       'prudentTouch',
-      'carefulSynthesis3',
-      'carefulSynthesis3'
+      'carefulSynthesis',
+      'carefulSynthesis'
     ]);
 
     const rotation = solver.run(seed);
