@@ -10,7 +10,6 @@ import {
   FocusedSynthesis,
   FocusedTouch,
   GreatStrides,
-  InnerQuiet,
   Innovation,
   MuscleMemory,
   Observe,
@@ -220,10 +219,6 @@ export class Solver {
       currentRotation.filter(a => !a.is(FinalAppraisal) && !a.is(RemoveFinalAppraisal)).length > 0
     ) {
       excludedActions.push(MuscleMemory, Reflect);
-    }
-    // If we already used IQ, don't put it inside rotation again
-    if (currentRotation.some(a => a.is(InnerQuiet) || a.is(Reflect))) {
-      excludedActions.push(InnerQuiet);
     }
     // If previous action was observe, prefer the combo actions
     if (index > 0 && currentRotation[index - 1].is(Observe)) {
